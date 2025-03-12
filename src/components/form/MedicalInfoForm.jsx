@@ -71,6 +71,34 @@ const MedicalInfoForm = () => {
       )}
 
       <div className="mb-4">
+        <label className="form-label" htmlFor="hasPhysicalDisabilities">Are there any physical disabilities?</label>
+        <select
+          id="hasPhysicalDisabilities"
+          name="hasPhysicalDisabilities"
+          value={medicalInfo.hasPhysicalDisabilities === null ? '' : medicalInfo.hasPhysicalDisabilities}
+          onChange={handleChange}
+          className="form-select"
+        >
+          <option value="">Select</option>
+          <option value={true}>Yes</option>
+          <option value={false}>No</option>
+        </select>
+      </div>
+
+      {medicalInfo.hasPhysicalDisabilities && (
+        <div className="mb-4">
+          <label className="form-label" htmlFor="physicalDisabilitiesDetails">If Yes Explain:</label>
+          <textarea
+            id="physicalDisabilitiesDetails"
+            name="physicalDisabilitiesDetails"
+            value={medicalInfo.physicalDisabilitiesDetails}
+            onChange={handleChange}
+            className="form-textarea"
+          />
+        </div>
+      )}
+
+      <div className="mb-4">
         <label className="form-label" htmlFor="immunizationUpToDate">Is the immunization record up to date?</label>
         <select
           id="immunizationUpToDate"

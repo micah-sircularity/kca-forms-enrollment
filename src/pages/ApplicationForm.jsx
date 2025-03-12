@@ -14,11 +14,10 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import PaymentForm from '../components/PaymentForm';
 
-const stripePromise = loadStripe('pk_test_51JpyudEjPvWPIfOtBr624VlAXJ2r7lHiUfwSaK8p8c8nSSUpR4LHNVczEi1dTVzoSQINfh1E6veaJob4MqvFRGhJ00dgLD4XQG');
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const ApplicationForm = () => {
   const { formData, nextStep, prevStep, resetForm } = useFormContext();
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [paymentMethodId, setPaymentMethodId] = useState(null);
   
@@ -30,19 +29,20 @@ const ApplicationForm = () => {
     { name: 'Schooling Options', component: SchoolingOptionsForm },
     { name: 'Financial Consent', component: FinancialConsentForm },
     { name: 'Agreements', component: AgreementsForm },
-    { name: 'Review & Payment', component: ReviewStep }
+    { name: 'Review & Payment', component: ReviewStep },
+    { name: 'Success', component: SuccessStep }
   ];
   
   const handleSubmit = (e) => {
     e.preventDefault();
     
     // Only allow submission if the payment has been completed
-    if (formData.currentStep === steps.length - 1) {
+    if (formData.currentStep === steps.length - 2) { // Review & Payment step
       if (paymentComplete) {
         // Submit the form data with payment information
         console.log('Form submitted with payment:', { formData, paymentMethodId });
-        setIsSubmitted(true);
-        // In a real application, you would send the data to the server here
+        // Move to success step instead of setting isSubmitted
+        nextStep();
       } else {
         // Scroll to payment form and highlight it
         const paymentForm = document.getElementById('payment-section');
@@ -66,49 +66,67 @@ const ApplicationForm = () => {
   };
 
   const validateCurrentStep = () => {
-    // Basic validation logic would go here
-    // For the prototype, we're not implementing full validation
-    return true;
+    // Validate based on the current step
+    switch (formData.currentStep) {
+      case 1: // Parent/Guardian Information step
+        // Use the static validation function from ParentInfoForm
+        if (ParentInfoForm.validateForm) {
+          const isValid = ParentInfoForm.validateForm(formData);
+          if (!isValid) {
+            // Remove the auto-scrolling behavior
+            // const formComponent = document.getElementById('emergency-contact-section');
+            // if (formComponent) {
+            //   formComponent.scrollIntoView({ behavior: 'smooth' });
+            // }
+          }
+          return isValid;
+        }
+        return true;
+      
+      case 5: // Financial Consent step
+        // Check if the user has agreed to terms
+        if (FinancialConsentForm.validateForm) {
+          return FinancialConsentForm.validateForm(formData);
+        }
+        return true;
+        
+      default:
+        // For other steps, we're not implementing full validation in this prototype
+        return true;
+    }
   };
 
   const CurrentStepComponent = steps[formData.currentStep].component;
   
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      {isSubmitted ? (
-        <SuccessMessage onNewApplication={() => {
-          resetForm();
-          setIsSubmitted(false);
-          setPaymentComplete(false);
-          setPaymentMethodId(null);
-        }} />
-      ) : (
-        <form onSubmit={handleSubmit}>
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Kairos Academy Enrollment Application</h1>
-            <p className="text-gray-600">Complete the following steps to apply for enrollment at Kairos Academy.</p>
-          </div>
-          
-          <ProgressBar currentStep={formData.currentStep} totalSteps={steps.length} />
-          
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-700">
-              Step {formData.currentStep + 1}: {steps[formData.currentStep].name}
-            </h2>
-          </div>
-          
-          <CurrentStepComponent paymentComplete={paymentComplete} onPaymentSuccess={handlePaymentSuccess} />
-          
+      <form onSubmit={handleSubmit}>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Kairos Academy Enrollment Application</h1>
+          <p className="text-gray-600">Complete the following steps to apply for enrollment at Kairos Academy.</p>
+        </div>
+        
+        <ProgressBar currentStep={formData.currentStep} totalSteps={steps.length} />
+        
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-700">
+            Step {formData.currentStep + 1}: {steps[formData.currentStep].name}
+          </h2>
+        </div>
+        
+        <CurrentStepComponent paymentComplete={paymentComplete} onPaymentSuccess={handlePaymentSuccess} />
+        
+        {formData.currentStep !== steps.length - 1 && (
           <FormNavigation 
             currentStep={formData.currentStep} 
             totalSteps={steps.length} 
             onNext={nextStep} 
             onPrev={prevStep}
-            isNextDisabled={!validateCurrentStep() || (formData.currentStep === steps.length - 1 && !paymentComplete)}
-            isSubmit={formData.currentStep === steps.length - 1}
+            isNextDisabled={!validateCurrentStep() || (formData.currentStep === steps.length - 2 && !paymentComplete)}
+            isSubmit={formData.currentStep === steps.length - 2}
           />
-        </form>
-      )}
+        )}
+      </form>
     </div>
   );
 };
@@ -539,7 +557,16 @@ const ReviewStep = ({ paymentComplete, onPaymentSuccess }) => {
   );
 };
 
-const SuccessMessage = ({ onNewApplication }) => {
+const SuccessStep = () => {
+  const { formData, resetForm } = useFormContext();
+  const applicationId = Math.random().toString(36).substring(2, 10).toUpperCase();
+  
+  const handleStartNewApplication = () => {
+    resetForm();
+    // Reset to the first step
+    window.location.reload();
+  };
+  
   return (
     <div className="bg-white p-8 rounded-lg shadow-md text-center">
       <div className="mb-6">
@@ -551,16 +578,34 @@ const SuccessMessage = ({ onNewApplication }) => {
       <p className="text-gray-600 mb-6">
         Thank you for applying to Kairos Academy. We have received your application and will be in touch soon.
       </p>
-      <p className="text-gray-600 mb-6">
-        Application ID: {Math.random().toString(36).substring(2, 10).toUpperCase()}
-      </p>
-      <button
-        type="button"
-        onClick={onNewApplication}
-        className="btn btn-primary"
-      >
-        Start New Application
-      </button>
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg inline-block">
+        <p className="text-gray-700 font-medium">Application ID: {applicationId}</p>
+        <p className="text-sm text-gray-500 mt-2">Please save this ID for your records</p>
+      </div>
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold text-gray-700 mb-3">Next Steps</h3>
+        <ul className="text-left list-disc list-inside text-gray-600 space-y-2">
+          <li>Our admissions team will review your application</li>
+          <li>You will receive an email confirmation within 24 hours</li>
+          <li>We will contact you to schedule an interview</li>
+          <li>Final enrollment decisions will be communicated within 2 weeks</li>
+        </ul>
+      </div>
+      <div className="mt-8 p-4 bg-blue-50 rounded-lg">
+        <p className="text-blue-700">
+          If you have any questions, please contact our admissions office at <strong>(555) 123-4567</strong> or email <a href="mailto:admissions@kairosacademy.edu" className="underline">admissions@kairosacademy.edu</a>
+        </p>
+      </div>
+      
+      <div className="mt-8">
+        <button
+          type="button"
+          onClick={handleStartNewApplication}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded focus:outline-none focus:shadow-outline"
+        >
+          Start New Application
+        </button>
+      </div>
     </div>
   );
 };

@@ -1,12 +1,21 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import * as React from 'react';
 import { saveFormData, getFormData } from '../utils/storage';
 
-const FormContext = createContext();
+// Create context with a default value
+const FormContext = React.createContext(null);
 
-export const useFormContext = () => useContext(FormContext);
+// Custom hook to use the form context
+export const useFormContext = () => {
+  const context = React.useContext(FormContext);
+  if (!context) {
+    throw new Error('useFormContext must be used within a FormProvider');
+  }
+  return context;
+};
 
+// Form provider component
 export const FormProvider = ({ children }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = React.useState({
     studentInfo: {
       firstName: '',
       middleName: '',
@@ -62,10 +71,24 @@ export const FormProvider = ({ children }) => {
         occupation: '',
         employer: ''
       },
+      emergencyContact: {
+        firstName: '',
+        lastName: '',
+        relationship: '',
+        phone: '',
+        cellPhone: '',
+        address: {
+          street: '',
+          city: '',
+          state: '',
+          zipCode: ''
+        }
+      },
       maritalStatus: '' // Added marital status
     },
     religiousInfo: {
       churchAttending: '',
+      churchPhone: '',
       pastorName: '',
       pastorPhone: '',
       fatherChristian: null,
@@ -77,6 +100,8 @@ export const FormProvider = ({ children }) => {
       physicianPhone: '',
       hasPhysicalImpairments: false,
       physicalImpairmentsDetails: '',
+      hasPhysicalDisabilities: false,
+      physicalDisabilitiesDetails: '',
       immunizationUpToDate: null,
       immunizationDetails: '',
       hasLearningDisabilities: false,
@@ -105,9 +130,11 @@ export const FormProvider = ({ children }) => {
     financialConsent: {
       tuitionProgram: '',
       specialNotes: '',
-      curriculumPaymentPrek8: '',
-      curriculumPayment912: '',
-      supplyFee: false,
+      curriculumPaymentPrek8Annual: false,
+      curriculumPaymentPrek8Split: false,
+      curriculumPayment912Annual: false,
+      curriculumPayment912Split: false,
+      supplyFee: true,
       sportsFee: false,
       draftDate: '',
       agreeToTerms: false
@@ -115,6 +142,7 @@ export const FormProvider = ({ children }) => {
     agreements: {
       photoRelease: null,
       parentCommitment: false,
+      termsAndConditions: false,
       cellPhoneRegistration: {
         hasPhone: false,
         phoneNumber: '',
@@ -128,7 +156,7 @@ export const FormProvider = ({ children }) => {
   });
 
   // Load saved form data on initial render
-  useEffect(() => {
+  React.useEffect(() => {
     const savedData = getFormData();
     if (savedData) {
       setFormData(savedData);
@@ -136,12 +164,12 @@ export const FormProvider = ({ children }) => {
   }, []);
 
   // Save form data when it changes
-  useEffect(() => {
+  React.useEffect(() => {
     saveFormData(formData);
   }, [formData]);
 
   // Age calculation utility
-  useEffect(() => {
+  React.useEffect(() => {
     if (formData.studentInfo.dateOfBirth) {
       const birthDate = new Date(formData.studentInfo.dateOfBirth);
       const today = new Date();
@@ -264,10 +292,24 @@ export const FormProvider = ({ children }) => {
           occupation: '',
           employer: ''
         },
+        emergencyContact: {
+          firstName: '',
+          lastName: '',
+          relationship: '',
+          phone: '',
+          cellPhone: '',
+          address: {
+            street: '',
+            city: '',
+            state: '',
+            zipCode: ''
+          }
+        },
         maritalStatus: ''
       },
       religiousInfo: {
         churchAttending: '',
+        churchPhone: '',
         pastorName: '',
         pastorPhone: '',
         fatherChristian: null,
@@ -279,6 +321,8 @@ export const FormProvider = ({ children }) => {
         physicianPhone: '',
         hasPhysicalImpairments: false,
         physicalImpairmentsDetails: '',
+        hasPhysicalDisabilities: false,
+        physicalDisabilitiesDetails: '',
         immunizationUpToDate: null,
         immunizationDetails: '',
         hasLearningDisabilities: false,
@@ -307,9 +351,11 @@ export const FormProvider = ({ children }) => {
       financialConsent: {
         tuitionProgram: '',
         specialNotes: '',
-        curriculumPaymentPrek8: '',
-        curriculumPayment912: '',
-        supplyFee: false,
+        curriculumPaymentPrek8Annual: false,
+        curriculumPaymentPrek8Split: false,
+        curriculumPayment912Annual: false,
+        curriculumPayment912Split: false,
+        supplyFee: true,
         sportsFee: false,
         draftDate: '',
         agreeToTerms: false
@@ -317,6 +363,7 @@ export const FormProvider = ({ children }) => {
       agreements: {
         photoRelease: null,
         parentCommitment: false,
+        termsAndConditions: false,
         cellPhoneRegistration: {
           hasPhone: false,
           phoneNumber: '',

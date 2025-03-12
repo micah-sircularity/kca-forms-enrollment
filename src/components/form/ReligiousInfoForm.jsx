@@ -18,16 +18,30 @@ const ReligiousInfoForm = () => {
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Religious Information</h2>
 
-      <div className="mb-4">
-        <label className="form-label" htmlFor="churchAttending">Church Attending</label>
-        <input
-          type="text"
-          id="churchAttending"
-          name="churchAttending"
-          value={religiousInfo.churchAttending}
-          onChange={handleChange}
-          className="form-input"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className="form-label" htmlFor="churchAttending">Church Attending</label>
+          <input
+            type="text"
+            id="churchAttending"
+            name="churchAttending"
+            value={religiousInfo.churchAttending}
+            onChange={handleChange}
+            className="form-input"
+          />
+        </div>
+
+        <div>
+          <label className="form-label" htmlFor="churchPhone">Church Phone</label>
+          <input
+            type="tel"
+            id="churchPhone"
+            name="churchPhone"
+            value={religiousInfo.churchPhone}
+            onChange={handleChange}
+            className="form-input"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

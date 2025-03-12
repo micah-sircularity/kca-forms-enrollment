@@ -1,15 +1,78 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFormContext } from '../../contexts/FormContext';
 
 const FinancialConsentForm = () => {
   const { formData, updateFormData } = useFormContext();
   const { financialConsent, studentInfo } = formData;
+  const [showAgreementError, setShowAgreementError] = useState(false);
+  const [showCurriculumError, setShowCurriculumError] = useState(false);
+
+  // Listen for validation attempts from the parent component
+  useEffect(() => {
+    // Create a function that will be called when the Next button is clicked
+    const handleValidationAttempt = () => {
+      // If the agreement checkbox is not checked, show the error and scroll to it
+      if (!financialConsent.agreeToTerms) {
+        setShowAgreementError(true);
+        // document.getElementById('agreement-section').scrollIntoView({ behavior: 'smooth' });
+      }
+    };
+
+    // Add the function as a property of the component's constructor
+    // This allows the ApplicationForm to call it when validation fails
+    FinancialConsentForm.handleValidationAttempt = handleValidationAttempt;
+
+    // Clean up when component unmounts
+    return () => {
+      delete FinancialConsentForm.handleValidationAttempt;
+    };
+  }, [financialConsent.agreeToTerms]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     updateFormData('financialConsent', { 
       [name]: type === 'checkbox' ? checked : value 
     });
+    
+    // Clear errors when appropriate fields are checked
+    if (name === 'agreeToTerms' && checked) {
+      setShowAgreementError(false);
+    }
+    
+    if ((name === 'curriculumPaymentPrek8Annual' || 
+         name === 'curriculumPaymentPrek8Split' || 
+         name === 'curriculumPayment912Annual' || 
+         name === 'curriculumPayment912Split') && checked) {
+      setShowCurriculumError(false);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    let isValid = true;
+    
+    // Check if user has agreed to terms
+    if (!financialConsent.agreeToTerms) {
+      setShowAgreementError(true);
+      document.getElementById('agreement-section').scrollIntoView({ behavior: 'smooth' });
+      isValid = false;
+    }
+    
+    // Check if at least one curriculum payment option is selected
+    const hasCurriculumOption = 
+      financialConsent.curriculumPaymentPrek8Annual || 
+      financialConsent.curriculumPaymentPrek8Split || 
+      financialConsent.curriculumPayment912Annual || 
+      financialConsent.curriculumPayment912Split;
+      
+    if (!hasCurriculumOption) {
+      setShowCurriculumError(true);
+      document.getElementById('curriculum-section').scrollIntoView({ behavior: 'smooth' });
+      isValid = false;
+    }
+    
+    // Continue with form submission if valid
+    return isValid;
   };
 
   return (
@@ -172,34 +235,34 @@ const FinancialConsentForm = () => {
         ></textarea>
       </div>
       
-      <div className="mb-6">
+      <div id="curriculum-section" className="mb-6">
         <h3 className="text-xl font-semibold text-gray-700 mb-3">Curriculum Payment</h3>
+        
+        <p className="text-sm text-gray-600 mb-4">Please select at least one curriculum payment option that applies to your student.</p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div className="border rounded-lg p-4">
             <h4 className="font-semibold mb-2">Pre K-8</h4>
             <div className="flex items-center mb-2">
               <input
-                type="radio"
+                type="checkbox"
                 id="curriculum-prek8-annual"
-                name="curriculumPaymentPrek8"
-                value="annual"
-                checked={financialConsent.curriculumPaymentPrek8 === 'annual'}
+                name="curriculumPaymentPrek8Annual"
+                checked={financialConsent.curriculumPaymentPrek8Annual}
                 onChange={handleChange}
                 className="mr-2"
               />
-              <label htmlFor="curriculum-annually"  className="cursor-pointer">
+              <label htmlFor="curriculum-prek8-annual" className="cursor-pointer">
                 <div className="font-medium">Annually: $300</div>
                 <div className="text-sm text-gray-600">Due July 10th</div>
               </label>
             </div>
             <div className="flex items-center">
               <input
-                type="radio"
+                type="checkbox"
                 id="curriculum-prek8-split"
-                name="curriculumPaymentPrek8"
-                value="split"
-                checked={financialConsent.curriculumPaymentPrek8 === 'split'}
+                name="curriculumPaymentPrek8Split"
+                checked={financialConsent.curriculumPaymentPrek8Split}
                 onChange={handleChange}
                 className="mr-2"
               />
@@ -215,11 +278,10 @@ const FinancialConsentForm = () => {
             <h4 className="font-semibold mb-2">9-12th Grade</h4>
             <div className="flex items-center mb-2">
               <input
-                type="radio"
+                type="checkbox"
                 id="curriculum-9-12-annual"
-                name="curriculumPayment912"
-                value="annual"
-                checked={financialConsent.curriculumPayment912 === 'annual'}
+                name="curriculumPayment912Annual"
+                checked={financialConsent.curriculumPayment912Annual}
                 onChange={handleChange}
                 className="mr-2"
               />
@@ -230,11 +292,10 @@ const FinancialConsentForm = () => {
             </div>
             <div className="flex items-center">
               <input
-                type="radio"
+                type="checkbox"
                 id="curriculum-9-12-split"
-                name="curriculumPayment912"
-                value="split"
-                checked={financialConsent.curriculumPayment912 === 'split'}
+                name="curriculumPayment912Split"
+                checked={financialConsent.curriculumPayment912Split}
                 onChange={handleChange}
                 className="mr-2"
               />
@@ -246,25 +307,22 @@ const FinancialConsentForm = () => {
             </div>
           </div>
         </div>
+        
+        {showCurriculumError && (
+          <div className="text-red-500 text-sm mt-1">
+            Please select at least one curriculum payment option.
+          </div>
+        )}
       </div>
       
       <div className="mb-6">
         <h3 className="text-xl font-semibold text-gray-700 mb-3">Additional Fees</h3>
         
         <div className="mb-4">
-          <div className="flex items-center mb-2">
-            <input
-              type="checkbox"
-              id="supplyFee"
-              name="supplyFee"
-              checked={financialConsent.supplyFee}
-              onChange={handleChange}
-              className="mr-2"
-            />
-            <label htmlFor="supplyFee" className="cursor-pointer">
-              <div className="font-medium">Supply Fee: $50</div>
-              <div className="text-sm text-gray-600">Due by the first day of class</div>
-            </label>
+          <div className="p-4 border rounded-lg">
+            <div className="font-medium">Supply Fee: $50</div>
+            <div className="text-sm text-gray-600">Due by the first day of class</div>
+            <div className="text-xs text-red-500 mt-1">Mandatory fee for all students</div>
           </div>
         </div>
         
@@ -282,6 +340,77 @@ const FinancialConsentForm = () => {
               <div className="font-medium">Sports Fee: $60</div>
               <div className="text-sm text-gray-600">Due at the beginning of the season</div>
             </label>
+          </div>
+        </div>
+      </div>
+      
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold text-gray-700 mb-3">Payment Methods</h3>
+        
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+          <p className="text-sm text-gray-700 mb-2">
+            <strong>Payment Options:</strong> Payments can be made with cash, check, or auto bank draft at no charge. Any credit or debit card transactions will incur a $3 convenience fee.
+          </p>
+          
+          <p className="text-sm text-gray-700 mb-2">
+            <strong>Online Account Access:</strong> Online account access is available at <a href="https://www.myprocare.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">www.myprocare.com</a>.
+          </p>
+          
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Payment Method:</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="payment-cash"
+                  name="preferredPaymentMethod"
+                  value="cash"
+                  checked={financialConsent.preferredPaymentMethod === 'cash'}
+                  onChange={handleChange}
+                  className="mr-2"
+                />
+                <label htmlFor="payment-cash" className="cursor-pointer">Cash</label>
+              </div>
+              
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="payment-check"
+                  name="preferredPaymentMethod"
+                  value="check"
+                  checked={financialConsent.preferredPaymentMethod === 'check'}
+                  onChange={handleChange}
+                  className="mr-2"
+                />
+                <label htmlFor="payment-check" className="cursor-pointer">Check</label>
+              </div>
+              
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="payment-bank-draft"
+                  name="preferredPaymentMethod"
+                  value="bankDraft"
+                  checked={financialConsent.preferredPaymentMethod === 'bankDraft'}
+                  onChange={handleChange}
+                  className="mr-2"
+                />
+                <label htmlFor="payment-bank-draft" className="cursor-pointer">Auto Bank Draft</label>
+              </div>
+              
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="payment-card"
+                  name="preferredPaymentMethod"
+                  value="card"
+                  checked={financialConsent.preferredPaymentMethod === 'card'}
+                  onChange={handleChange}
+                  className="mr-2"
+                />
+                <label htmlFor="payment-card" className="cursor-pointer">Credit/Debit Card (+$3 fee)</label>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -325,7 +454,7 @@ const FinancialConsentForm = () => {
         </div>
       </div>
       
-      <div className="border-t border-gray-200 pt-4 mt-6">
+      <div id="agreement-section" className="border-t border-gray-200 pt-4 mt-6">
         <div className="mb-4">
           <div className="flex items-center mb-2">
             <input
@@ -335,15 +464,34 @@ const FinancialConsentForm = () => {
               checked={financialConsent.agreeToTerms}
               onChange={handleChange}
               className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+              required
             />
             <label htmlFor="agreeToTerms" className="ml-2 block text-sm text-gray-700">
-              I have read and agree to the financial terms and policies of Kairos Christian Academy.
+              I have read and agree to the financial terms and policies of Kairos Christian Academy. <span className="text-red-500">*</span>
             </label>
           </div>
+          {showAgreementError && (
+            <div className="text-red-500 text-sm mt-1 bg-red-50 p-2 border border-red-200 rounded">
+              <strong>Required:</strong> You must agree to the terms to continue. Please check the box above.
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
+};
+
+// Add static validation method that will be used by ApplicationForm component
+FinancialConsentForm.validateForm = (formData) => {
+  // Check if the user has agreed to the financial terms
+  const isValid = formData.financialConsent.agreeToTerms === true;
+  
+  // If validation fails and we have a handler function, call it to show the error
+  if (!isValid && FinancialConsentForm.handleValidationAttempt) {
+    FinancialConsentForm.handleValidationAttempt();
+  }
+  
+  return isValid;
 };
 
 export default FinancialConsentForm;

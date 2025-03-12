@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFormContext } from '../../contexts/FormContext';
 
 const ParentInfoForm = () => {
   const { formData, updateFormData } = useFormContext();
   const { parentInfo, studentInfo } = formData;
+  const [showEmergencyContactError, setShowEmergencyContactError] = useState(false);
 
   const handlePrimaryGuardianChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -94,6 +95,63 @@ const ParentInfoForm = () => {
         }
       });
     }
+  };
+
+  const handleEmergencyContactChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    
+    if (name.startsWith('address.')) {
+      const addressField = name.split('.')[1];
+      updateFormData('parentInfo', {
+        emergencyContact: {
+          ...parentInfo.emergencyContact,
+          address: {
+            ...parentInfo.emergencyContact.address,
+            [addressField]: value
+          }
+        }
+      });
+    } else {
+      updateFormData('parentInfo', {
+        emergencyContact: {
+          ...parentInfo.emergencyContact,
+          [name]: value
+        }
+      });
+    }
+    
+    // Clear error when any emergency contact field is filled
+    if (value.trim() !== '') {
+      setShowEmergencyContactError(false);
+    }
+  };
+
+  const handleMaritalStatusChange = (e) => {
+    updateFormData('parentInfo', {
+      maritalStatus: e.target.value
+    });
+  };
+
+  const validateEmergencyContact = () => {
+    const { emergencyContact } = parentInfo;
+    
+    // Check if all required emergency contact fields are filled
+    const isValid = 
+      emergencyContact.firstName.trim() !== '' &&
+      emergencyContact.lastName.trim() !== '' &&
+      emergencyContact.relationship.trim() !== '' &&
+      emergencyContact.phone.trim() !== '' &&
+      emergencyContact.cellPhone.trim() !== '' &&
+      emergencyContact.address.street.trim() !== '' &&
+      emergencyContact.address.city.trim() !== '' &&
+      emergencyContact.address.state.trim() !== '' &&
+      emergencyContact.address.zipCode.trim() !== '';
+      
+    if (!isValid) {
+      setShowEmergencyContactError(true);
+    }
+    
+    return isValid;
   };
 
   return (
@@ -438,7 +496,166 @@ const ParentInfoForm = () => {
           </div>
         </div>
       </div>
+
+      <div id="emergency-contact-section" className="mt-8 mb-6">
+        <h3 className="text-xl font-semibold text-gray-700 mb-4">Emergency Contact</h3>
+        <p className="text-sm text-gray-600 mb-4">Please provide an emergency contact other than parents/guardians listed above. <span className="text-red-500 font-medium">All fields are required.</span></p>
+        
+        {showEmergencyContactError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+            <p>Please fill out all emergency contact fields. They are mandatory.</p>
+          </div>
+        )}
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="form-label" htmlFor="emergency-firstName">First Name <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              id="emergency-firstName"
+              name="firstName"
+              value={parentInfo.emergencyContact.firstName}
+              onChange={handleEmergencyContactChange}
+              className="form-input"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="form-label" htmlFor="emergency-lastName">Last Name <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              id="emergency-lastName"
+              name="lastName"
+              value={parentInfo.emergencyContact.lastName}
+              onChange={handleEmergencyContactChange}
+              className="form-input"
+              required
+            />
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="form-label" htmlFor="emergency-relationship">Relationship to Student <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              id="emergency-relationship"
+              name="relationship"
+              value={parentInfo.emergencyContact.relationship}
+              onChange={handleEmergencyContactChange}
+              className="form-input"
+              placeholder="e.g., Grandparent, Aunt, Family Friend"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="form-label" htmlFor="emergency-phone">Phone <span className="text-red-500">*</span></label>
+            <input
+              type="tel"
+              id="emergency-phone"
+              name="phone"
+              value={parentInfo.emergencyContact.phone}
+              onChange={handleEmergencyContactChange}
+              className="form-input"
+              required
+            />
+          </div>
+        </div>
+        
+        <div className="mb-4">
+          <label className="form-label" htmlFor="emergency-cellPhone">Cell Phone <span className="text-red-500">*</span></label>
+          <input
+            type="tel"
+            id="emergency-cellPhone"
+            name="cellPhone"
+            value={parentInfo.emergencyContact.cellPhone}
+            onChange={handleEmergencyContactChange}
+            className="form-input"
+            required
+          />
+        </div>
+        
+        <div className="mb-4">
+          <label className="form-label">Address <span className="text-red-500">*</span></label>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+            <div>
+              <label className="form-label" htmlFor="emergency-address.street">Street <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                id="emergency-address.street"
+                name="address.street"
+                value={parentInfo.emergencyContact.address.street}
+                onChange={handleEmergencyContactChange}
+                className="form-input"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="form-label" htmlFor="emergency-address.city">City <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                id="emergency-address.city"
+                name="address.city"
+                value={parentInfo.emergencyContact.address.city}
+                onChange={handleEmergencyContactChange}
+                className="form-input"
+                required
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="form-label" htmlFor="emergency-address.state">State <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                id="emergency-address.state"
+                name="address.state"
+                value={parentInfo.emergencyContact.address.state}
+                onChange={handleEmergencyContactChange}
+                className="form-input"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="form-label" htmlFor="emergency-address.zipCode">Zip Code <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                id="emergency-address.zipCode"
+                name="address.zipCode"
+                value={parentInfo.emergencyContact.address.zipCode}
+                onChange={handleEmergencyContactChange}
+                className="form-input"
+                required
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  );
+};
+
+// Add the validation function to the component
+ParentInfoForm.validateForm = (formData) => {
+  // Check if all required emergency contact fields are filled
+  const { emergencyContact } = formData.parentInfo;
+  
+  return (
+    emergencyContact.firstName.trim() !== '' &&
+    emergencyContact.lastName.trim() !== '' &&
+    emergencyContact.relationship.trim() !== '' &&
+    emergencyContact.phone.trim() !== '' &&
+    emergencyContact.cellPhone.trim() !== '' &&
+    emergencyContact.address.street.trim() !== '' &&
+    emergencyContact.address.city.trim() !== '' &&
+    emergencyContact.address.state.trim() !== '' &&
+    emergencyContact.address.zipCode.trim() !== ''
   );
 };
 

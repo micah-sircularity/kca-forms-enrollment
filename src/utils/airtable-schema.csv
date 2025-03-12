@@ -1,0 +1,22 @@
+Field Name,Field Type,Description
+Student Name,Single line text,Full name of the student
+Student DOB,Date,Date of birth of the student
+Student Grade,Single select,"Grade level (Pre-K, K, 1st, 2nd, 3rd, etc.)"
+Student Gender,Single select,"Gender (Male, Female)"
+Parent Name,Single line text,Full name of parent/guardian
+Parent Email,Email,Email address of parent/guardian
+Parent Phone,Phone,Phone number of parent/guardian
+Parent Address,Single line text,Street address of parent/guardian
+Parent City,Single line text,City of parent/guardian
+Parent State,Single line text,State of parent/guardian
+Parent Zip,Single line text,Zip code of parent/guardian
+Emergency Contact Name,Single line text,Name of emergency contact
+Emergency Contact Phone,Phone,Phone number of emergency contact
+Emergency Contact Relationship,Single line text,Relationship to student
+Payment Method,Single select,"Payment method used (card, cash, check, bankDraft)"
+Application Fee,Currency,Application fee amount
+Registration Fee,Currency,Registration fee amount
+Total Paid,Currency,Total amount paid
+Submission Date,Date & Time,Date and time when application was submitted
+Status,Single select,"Application status (Submitted, In Review, Approved, Rejected)"
+Notes,Long text,Additional notes or comments 
