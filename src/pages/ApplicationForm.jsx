@@ -426,42 +426,6 @@ const ReviewStep = ({ paymentComplete, onPaymentSuccess }) => {
       </div>
 
       <div className="mb-6">
-        <h3 className="text-xl font-semibold text-primary-600 mb-2">Additional Information</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="md:col-span-2">
-            <p className="text-sm text-gray-500">Reasons for Enrolling</p>
-            <p className="font-medium">{additionalInfo.reasonForEnrolling || 'N/A'}</p>
-          </div>
-          <div className="md:col-span-2">
-            <p className="text-sm text-gray-500">Special Skills and Talents</p>
-            <p className="font-medium">{additionalInfo.specialSkills || 'N/A'}</p>
-          </div>
-          <div className="md:col-span-2">
-            <p className="text-sm text-gray-500">Parent Contribution</p>
-            <p className="font-medium">{additionalInfo.parentContribution || 'N/A'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Ever Been Expelled?</p>
-            <p className="font-medium">{additionalInfo.hasBeenExpelled === true ? 'Yes' : additionalInfo.hasBeenExpelled === false ? 'No' : 'N/A'}</p>
-            {additionalInfo.hasBeenExpelled && (
-              <>
-                <p className="text-sm text-gray-500 mt-2">Details</p>
-                <p className="font-medium">{additionalInfo.expelledDetails || 'N/A'}</p>
-              </>
-            )}
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Functions Independently?</p>
-            <p className="font-medium">{additionalInfo.functionIndependently === true ? 'Yes' : additionalInfo.functionIndependently === false ? 'No' : 'N/A'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Attention Span</p>
-            <p className="font-medium">{additionalInfo.attentionSpan || 'N/A'}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="mb-6">
         <h3 className="text-xl font-semibold text-primary-600 mb-2">Agreements</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gapcols-2 gap-4">
           <div>
